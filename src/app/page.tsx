@@ -201,11 +201,11 @@ export default function Home() {
             className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4"
           >
             <h1 className="text-3xl md:text-4xl font-bold text-white/90">
-              AI Voice Chat Assistant
+              AI Voice Assistant
             </h1>
 
             <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-              <div className="w-full md:w-76">
+              <div className="w-full md:w-[280px]">
                 <AssistantSelector
                   selectedType={assistantType}
                   onSelect={handleAssistantTypeChange}

@@ -76,8 +76,6 @@ export async function generateAIResponse(text: string, userName: string, assista
           break;
     };
     
-    console.log(assistantType);
-    console.log(systemInstruction);
     const body = {
       system_instruction: {
         "parts": [

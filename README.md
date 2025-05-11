@@ -1,4 +1,4 @@
-# AI Voice Chat Assistant
+# AI Voice Assistant
 
 A Next.js application that allows users to interact with an AI assistant using voice input and output. The application uses Gemini for generating responses and OpenAI for speech-to-text and text-to-speech conversion.
 

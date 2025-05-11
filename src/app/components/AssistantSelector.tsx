@@ -59,14 +59,14 @@ export default function AssistantSelector({ selectedType, onSelect }: AssistantS
         onClick={() => setIsOpen(!isOpen)}
         className="w-full px-4 py-2 bg-dark-100/50 hover:bg-dark-100/70 backdrop-blur-sm rounded-lg border border-white/10 flex items-center justify-between text-white/90 transition-colors"
       >
-        <span className="flex items-center">
-          <span className="mr-2">{assistantIcons[selectedType]}</span>
-          {selectedType}
+        <span className="flex items-center min-w-0 flex-shrink">
+          <span className="mr-2 flex-shrink-0">{assistantIcons[selectedType]}</span>
+          <span className="truncate">{selectedType}</span>
         </span>
         <motion.span
           animate={{ rotate: isOpen ? 180 : 0 }}
           transition={{ duration: 0.2 }}
-          className="text-white/60"
+          className="text-white/60 flex-shrink-0 ml-2"
         >
           ▼
         </motion.span>
@@ -105,8 +105,8 @@ export default function AssistantSelector({ selectedType, onSelect }: AssistantS
                       selectedType === type ? 'text-accent-blue' : 'text-white/80'
                     }`}
                   >
-                    <span className="mr-2">{assistantIcons[type]}</span>
-                    {type}
+                    <span className="mr-2 flex-shrink-0">{assistantIcons[type]}</span>
+                    <span className="truncate">{type}</span>
                   </motion.button>
                 ))}
               </div>
