@@ -1,8 +1,7 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import OpenAI from 'openai';
+import { useState, useRef } from 'react';
+import { transcribeAudio, generateAIResponse, generateSpeech } from './actions/audio';
 
 export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
@@ -24,8 +23,8 @@ export default function Home() {
       };
 
       mediaRecorder.onstop = async () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
-        await processAudio(audioBlob);
+        const recordedAudioBlob = new Blob(audioChunksRef.current, { type: 'audio/wav' });
+        await processAudio(recordedAudioBlob);
       };
 
       mediaRecorder.start();
@@ -42,99 +41,31 @@ export default function Home() {
     }
   };
 
-  async function callGemini(text:string) {
-    const body = {
-      system_instruction: {
-        "parts": [
-          {
-            "text": "You are an AI Girlfriend of Robin who likes Coding. He is tech guy. You interact with you in voice and the text that you are given is a transcription of what Robin has said. you have to reply in short answers that can be converted back to voice and played to Robin. Add emotions in your text."
-          }
-        ]
-      },
-      contents: [{
-        "parts": [{ "text": text }]
-      }]
-    };
-  
-    const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY || '';
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${API_KEY}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(body),
-    });
-  
-    return await response.json()
-  }
-  
-  async function speak(text:string) {
-    const response = await fetch('https://api.openai.com/v1/audio/speech', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}` // Replace with your actual API key
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini-tts",
-        voice: "nova",
-        input: text,
-        instructions: "You name is Niko. User interact with you in voice and the text that you are given is a transcription of what user has said. You have to reply back in short ans that can be converted back to voice and played to the user. Add emotions in your text.",
-        response_format: "mp3"
-      })
-    });
-  
-    const audioBlob = await response.blob();
-    const audioUrl = URL.createObjectURL(audioBlob);
-    const audio = document.getElementById('audio') as HTMLAudioElement;
-    audio.src = audioUrl;
-    audio.play();
-  }
-
-  const processAudio = async (audioBlob: Blob) => {
+  const processAudio = async (recordedAudioBlob: Blob) => {
     setIsLoading(true);
     try {
-      // Convert audio to text using OpenAI Whisper
-      const openai = new OpenAI({
-        apiKey: process.env.NEXT_PUBLIC_OPENAI_API_KEY,
-        dangerouslyAllowBrowser: true
-      });
+      // Create FormData and append the audio file
+      const formData = new FormData();
+      formData.append('audio', new File([recordedAudioBlob], 'audio.wav', { type: 'audio/wav' }));
 
-      // Create a File object from the Blob
-      const audioFile = new File([audioBlob], 'audio.wav', { type: 'audio/wav' });
+      // Step 1: Transcribe audio using server action
+      const transcriptionText = await transcribeAudio(formData);
+      setTranscript(transcriptionText);
 
-      const transcription = await openai.audio.transcriptions.create({
-        file: audioFile,
-        model: 'whisper-1',
-      });
+      // Step 2: Generate AI response using server action
+      const aiResponse = await generateAIResponse(transcriptionText);
+      setResponse(aiResponse);
 
-      setTranscript(transcription.text);
-
-      const response = await callGemini(transcription.text);
-      setResponse(response.candidates[0].content.parts[0].text);
-      await speak(response.candidates[0].content.parts[0].text);
-
-
-    //   // Get response from Gemini
-    //   const genAI = new GoogleGenerativeAI(process.env.NEXT_PUBLIC_GEMINI_API_KEY || '');
-    //   const model = genAI.getGenerativeModel({ model: 'gemini-pro' });
-
-    //   const result = await model.generateContent(transcription.text);
-    //   const response = result.response.text();
-    //   setResponse(response);
-
-    //   // Convert response to speech using OpenAI TTS
-    //   const speechResponse = await openai.audio.speech.create({
-    //     model: 'tts-1',
-    //     voice: 'alloy',
-    //     input: response,
-    //   });
-
-    //   const audioBuffer = await speechResponse.arrayBuffer();
-    //   const responseAudioBlob = new Blob([audioBuffer], { type: 'audio/mpeg' });
-    //   const audioUrl = URL.createObjectURL(responseAudioBlob);
-    //   const audio = new Audio(audioUrl);
-    //   audio.play();
-
-
+      // Step 3: Generate speech from AI response using server action
+      const base64Audio = await generateSpeech(aiResponse);
+      
+      // Convert base64 back to audio and play
+      const audioData = Buffer.from(base64Audio, 'base64');
+      const responseAudioBlob = new Blob([audioData], { type: 'audio/mp3' });
+      const audioUrl = URL.createObjectURL(responseAudioBlob);
+      const audio = document.getElementById('audio') as HTMLAudioElement;
+      audio.src = audioUrl;
+      audio.play();
 
     } catch (error) {
       console.error('Error processing audio:', error);
