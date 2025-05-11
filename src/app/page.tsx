@@ -5,6 +5,19 @@ import { useSession, signOut } from 'next-auth/react';
 import { redirect } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { transcribeAudio, generateAIResponse, generateSpeech } from './actions/audio';
+import { Session } from 'next-auth';
+
+interface ExtendedSession extends Session {
+  user: {
+    id?: string;
+    firstName?: string;
+    lastName?: string;
+    gender?: string;
+    email?: string | null;
+    image?: string | null;
+    name?: string | null;
+  }
+}
 
 interface ChatMessage {
   role: 'user' | 'assistant';
@@ -13,7 +26,7 @@ interface ChatMessage {
 }
 
 export default function Home() {
-  const { data: session, status } = useSession();
+  const { data: session, status } = useSession() as { data: ExtendedSession | null, status: string };
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
@@ -171,7 +184,9 @@ export default function Home() {
               transition={{ delay: 0.3 }}
               className="text-sm"
             >
-              <p className="font-semibold text-white/80">{session?.user?.name}</p>
+              <p className="font-semibold text-white/80">
+                {session?.user?.firstName || session?.user?.name || 'User'}
+              </p>
               <button
                 onClick={() => signOut()}
                 className="text-accent-pink hover:text-accent-pink/80 transition-colors"
