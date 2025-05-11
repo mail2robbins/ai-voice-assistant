@@ -3,6 +3,7 @@
 import { useState, useRef } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { redirect } from 'next/navigation';
+import { motion, AnimatePresence } from 'framer-motion';
 import { transcribeAudio, generateAIResponse, generateSpeech } from './actions/audio';
 
 interface ChatMessage {
@@ -125,93 +126,139 @@ export default function Home() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-2xl text-gray-600">Loading...</div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-dark">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="text-2xl text-white/80"
+        >
+          Loading...
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <main className="min-h-screen p-8 bg-gray-50">
+    <motion.main
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="min-h-screen bg-gradient-dark p-8"
+    >
       <div className="max-w-4xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-primary">
+        <motion.div
+          initial={{ y: -20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          className="flex justify-between items-center mb-8"
+        >
+          <h1 className="text-4xl font-bold text-white/90">
             AI Voice Chat Assistant
           </h1>
           <div className="flex items-center space-x-4">
             {session?.user?.image && (
-              <img
+              <motion.img
+                initial={{ scale: 0 }}
+                animate={{ scale: 1 }}
+                transition={{ type: "spring", stiffness: 200, damping: 15 }}
                 src={session.user.image}
                 alt={session.user.name || 'User'}
-                className="w-10 h-10 rounded-full"
+                className="w-10 h-10 rounded-full ring-2 ring-accent-blue/30"
               />
             )}
-            <div className="text-sm">
-              <p className="font-semibold">{session?.user?.name}</p>
+            <motion.div
+              initial={{ x: 20, opacity: 0 }}
+              animate={{ x: 0, opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="text-sm"
+            >
+              <p className="font-semibold text-white/80">{session?.user?.name}</p>
               <button
                 onClick={() => signOut()}
-                className="text-red-600 hover:text-red-800"
+                className="text-accent-pink hover:text-accent-pink/80 transition-colors"
               >
                 Sign out
               </button>
-            </div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
         
-        <div className="bg-white rounded-lg shadow-lg overflow-hidden">
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="bg-dark-200/50 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white/5"
+        >
           <div 
             ref={chatContainerRef}
-            className="h-[500px] overflow-y-auto p-6 space-y-4"
+            className="h-[500px] overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-dark-100 scrollbar-track-transparent"
           >
-            {chatHistory.map((message, index) => (
-              <div
-                key={index}
-                className={`flex ${
-                  message.role === 'user' ? 'justify-end' : 'justify-start'
-                }`}
-              >
-                <div
-                  className={`max-w-[70%] rounded-lg p-4 ${
-                    message.role === 'user'
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-100 text-gray-800'
+            <AnimatePresence>
+              {chatHistory.map((message, index) => (
+                <motion.div
+                  key={index}
+                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ type: "spring", damping: 25, stiffness: 400 }}
+                  className={`flex ${
+                    message.role === 'user' ? 'justify-end' : 'justify-start'
                   }`}
                 >
-                  <p className="text-sm">{message.content}</p>
-                  <p className={`text-xs mt-1 ${
-                    message.role === 'user' ? 'text-blue-100' : 'text-gray-500'
-                  }`}>
-                    {formatTime(message.timestamp)}
-                  </p>
-                </div>
-              </div>
-            ))}
+                  <div
+                    className={`max-w-[70%] rounded-lg p-4 ${
+                      message.role === 'user'
+                        ? 'bg-accent-blue/20 text-white/90 backdrop-blur-sm'
+                        : 'bg-dark-100/50 text-white/80 backdrop-blur-sm'
+                    }`}
+                  >
+                    <p className="text-sm">{message.content}</p>
+                    <p className={`text-xs mt-1 ${
+                      message.role === 'user' ? 'text-accent-blue/60' : 'text-white/40'
+                    }`}>
+                      {formatTime(message.timestamp)}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
             {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-gray-100 rounded-lg p-4">
-                  <p className="text-gray-500">Processing your message...</p>
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                className="flex justify-start"
+              >
+                <div className="bg-dark-100/50 rounded-lg p-4 backdrop-blur-sm">
+                  <p className="text-white/60">Processing your message...</p>
                 </div>
-              </div>
+              </motion.div>
             )}
           </div>
 
-          <div className="border-t border-gray-200 p-4">
+          <motion.div
+            initial={{ y: 20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="border-t border-white/5 p-4 bg-dark-300/50"
+          >
             <div className="flex justify-center items-center space-x-4">
-              <button
+              <motion.button
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
                 onClick={isRecording ? stopRecording : startRecording}
-                className={`px-6 py-3 rounded-full text-white font-semibold transition-all ${
+                className={`px-6 py-3 rounded-full font-semibold transition-all ${
                   isRecording
-                    ? 'bg-red-500 hover:bg-red-600'
-                    : 'bg-primary hover:bg-blue-600'
+                    ? 'bg-accent-pink/90 hover:bg-accent-pink text-white shadow-lg shadow-accent-pink/20'
+                    : 'bg-accent-blue/90 hover:bg-accent-blue text-white shadow-lg shadow-accent-blue/20'
                 }`}
               >
                 {isRecording ? 'Stop Recording' : 'Start Recording'}
-              </button>
+              </motion.button>
               <audio id="audio" className="hidden" />
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
       </div>
-    </main>
+    </motion.main>
   );
 } 
