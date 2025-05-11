@@ -6,6 +6,7 @@ import { redirect } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { transcribeAudio, generateAIResponse, generateSpeech } from './actions/audio';
 import { Session } from 'next-auth';
+import HamburgerMenu from './components/HamburgerMenu';
 
 interface ExtendedSession extends Session {
   user: {
@@ -167,7 +168,9 @@ export default function Home() {
           <h1 className="text-4xl font-bold text-white/90">
             AI Voice Chat Assistant
           </h1>
-          <div className="flex items-center space-x-4">
+          
+          {/* Desktop User Menu */}
+          <div className="hidden md:flex items-center space-x-4">
             {session?.user?.image && (
               <motion.img
                 initial={{ scale: 0 }}
@@ -195,6 +198,15 @@ export default function Home() {
               </button>
             </motion.div>
           </div>
+
+          {/* Mobile Hamburger Menu */}
+          {session?.user && (
+            <HamburgerMenu
+              userName={session.user.name || 'User'}
+              userImage={session.user.image}
+              firstName={session.user.firstName}
+            />
+          )}
         </motion.div>
         
         <motion.div
