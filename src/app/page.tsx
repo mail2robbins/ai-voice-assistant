@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { transcribeAudio, generateAIResponse, generateSpeech } from './actions/audio';
 import { Session } from 'next-auth';
 import HamburgerMenu from './components/HamburgerMenu';
+import AssistantSelector, { AssistantType } from './components/AssistantSelector';
 
 interface ExtendedSession extends Session {
   user: {
@@ -33,9 +34,16 @@ export default function Home() {
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+  const [assistantType, setAssistantType] = useState<AssistantType>('Personal Assistant');
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Handle assistant type change
+  const handleAssistantTypeChange = (type: AssistantType) => {
+    setAssistantType(type);
+    setChatHistory([]); // Clear chat history when assistant type changes
+  };
 
   // Redirect to sign in if not authenticated
   if (status === 'unauthenticated') {
@@ -100,7 +108,7 @@ export default function Home() {
       setChatHistory(updatedHistory);
 
       // Step 2: Generate AI response using server action with chat history
-      const aiResponse = await generateAIResponse(transcriptionText, session?.user?.name || 'User', updatedHistory);
+      const aiResponse = await generateAIResponse(transcriptionText, session?.user?.name || 'User', assistantType, updatedHistory);
       setResponse(aiResponse);
 
       // Add AI response to chat history
@@ -163,50 +171,59 @@ export default function Home() {
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="max-w-4xl mx-auto flex justify-between items-center"
+          className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4"
         >
           <h1 className="text-3xl md:text-4xl font-bold text-white/90">
             AI Voice Chat Assistant
           </h1>
-          
-          {/* Desktop User Menu */}
-          <div className="hidden md:flex items-center space-x-4">
-            {session?.user?.image && (
-              <motion.img
-                initial={{ scale: 0 }}
-                animate={{ scale: 1 }}
-                transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                src={session.user.image}
-                alt={session.user.name || 'User'}
-                className="w-10 h-10 rounded-full ring-2 ring-accent-blue/30"
+
+          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+            <div className="w-full md:w-64">
+              <AssistantSelector
+                selectedType={assistantType}
+                onSelect={handleAssistantTypeChange}
+              />
+            </div>
+            
+            {/* Desktop User Menu */}
+            <div className="hidden md:flex items-center space-x-4">
+              {session?.user?.image && (
+                <motion.img
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                  src={session.user.image}
+                  alt={session.user.name || 'User'}
+                  className="w-10 h-10 rounded-full ring-2 ring-accent-blue/30"
+                />
+              )}
+              <motion.div
+                initial={{ x: 20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="text-sm"
+              >
+                <p className="font-semibold text-white/80">
+                  {session?.user?.firstName || session?.user?.name || 'User'}
+                </p>
+                <button
+                  onClick={() => signOut()}
+                  className="text-accent-pink hover:text-accent-pink/80 transition-colors"
+                >
+                  Sign out
+                </button>
+              </motion.div>
+            </div>
+
+            {/* Mobile Hamburger Menu */}
+            {session?.user && (
+              <HamburgerMenu
+                userName={session.user.name || 'User'}
+                userImage={session.user.image}
+                firstName={session.user.firstName}
               />
             )}
-            <motion.div
-              initial={{ x: 20, opacity: 0 }}
-              animate={{ x: 0, opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="text-sm"
-            >
-              <p className="font-semibold text-white/80">
-                {session?.user?.firstName || session?.user?.name || 'User'}
-              </p>
-              <button
-                onClick={() => signOut()}
-                className="text-accent-pink hover:text-accent-pink/80 transition-colors"
-              >
-                Sign out
-              </button>
-            </motion.div>
           </div>
-
-          {/* Mobile Hamburger Menu */}
-          {session?.user && (
-            <HamburgerMenu
-              userName={session.user.name || 'User'}
-              userImage={session.user.image}
-              firstName={session.user.firstName}
-            />
-          )}
         </motion.div>
       </div>
         
