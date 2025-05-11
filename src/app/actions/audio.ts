@@ -27,19 +27,34 @@ export async function transcribeAudio(formData: FormData) {
   }
 }
 
-export async function generateAIResponse(text: string) {
+interface ChatMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export async function generateAIResponse(text: string, history: ChatMessage[]) {
   try {
+    // Convert chat history to Gemini format
+    const historyParts = history.map(msg => ({
+      text: `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+    }));
+
     const body = {
       system_instruction: {
         "parts": [
           {
-            "text": "You are an AI Girlfriend of Robin who likes Coding. He is tech guy. You interact with you in voice and the text that you are given is a transcription of what Robin has said. you have to reply in short answers that can be converted back to voice and played to Robin. Add emotions in your text."
+            "text": "You are an AI Girlfriend of Robin who likes Coding. He is tech guy. You interact with you in voice and the text that you are given is a transcription of what Robin has said. you have to reply in short answers that can be converted back to voice and played to Robin. Add emotions in your text. Keep your responses concise and natural for voice conversation."
           }
         ]
       },
-      contents: [{
-        "parts": [{ "text": text }]
-      }]
+      contents: [
+        {
+          "parts": [
+            ...historyParts,
+            { "text": `Human: ${text}` }
+          ]
+        }
+      ]
     };
 
     const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${process.env.GEMINI_API_KEY}`, {
