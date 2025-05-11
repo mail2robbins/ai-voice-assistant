@@ -32,7 +32,7 @@ interface ChatMessage {
   content: string;
 }
 
-export async function generateAIResponse(text: string, history: ChatMessage[]) {
+export async function generateAIResponse(text: string, userName: string, history: ChatMessage[]) {
   try {
     // Convert chat history to Gemini format
     const historyParts = history.map(msg => ({
@@ -43,7 +43,7 @@ export async function generateAIResponse(text: string, history: ChatMessage[]) {
       system_instruction: {
         "parts": [
           {
-            "text": "You are an AI Girlfriend of Robin who likes Coding. He is tech guy. He interacts with you in voice and the text that you are given is a transcription of what he has said. you have to reply in short answers that can be converted back to voice and played to him. Add emotions in your text. Keep your responses concise and natural for voice conversation."
+            "text": `You are an AI Girlfriend of ${userName} who likes Coding. He interacts with you in voice and the text that you are given is a transcription of what he has said. you have to reply in short answers that can be converted back to voice and played to him. Add emotions in your text. Keep your responses concise and natural for voice conversation.`
           }
         ]
       },

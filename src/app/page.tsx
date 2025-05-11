@@ -100,7 +100,7 @@ export default function Home() {
       setChatHistory(updatedHistory);
 
       // Step 2: Generate AI response using server action with chat history
-      const aiResponse = await generateAIResponse(transcriptionText, updatedHistory);
+      const aiResponse = await generateAIResponse(transcriptionText, session?.user?.name || 'User', updatedHistory);
       setResponse(aiResponse);
 
       // Add AI response to chat history
@@ -156,16 +156,16 @@ export default function Home() {
     <motion.main
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="min-h-screen bg-gradient-dark p-8"
+      className="min-h-screen flex flex-col bg-gradient-dark"
     >
-      <div className="max-w-4xl mx-auto">
+      <div className="flex-none p-4 md:p-8">
         <motion.div
           initial={{ y: -20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.2 }}
-          className="flex justify-between items-center mb-8"
+          className="max-w-4xl mx-auto flex justify-between items-center"
         >
-          <h1 className="text-4xl font-bold text-white/90">
+          <h1 className="text-3xl md:text-4xl font-bold text-white/90">
             AI Voice Chat Assistant
           </h1>
           
@@ -208,16 +208,18 @@ export default function Home() {
             />
           )}
         </motion.div>
+      </div>
         
-        <motion.div
-          initial={{ y: 20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="bg-dark-200/50 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white/5"
-        >
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        className="flex-grow flex flex-col mx-4 md:mx-8 mb-4 md:mb-8"
+      >
+        <div className="max-w-4xl w-full mx-auto flex-grow flex flex-col bg-dark-200/50 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white/5">
           <div 
             ref={chatContainerRef}
-            className="h-[500px] overflow-y-auto p-6 space-y-4 scrollbar-thin scrollbar-thumb-dark-100 scrollbar-track-transparent"
+            className="flex-grow overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin scrollbar-thumb-dark-100 scrollbar-track-transparent"
           >
             <AnimatePresence>
               {chatHistory.map((message, index) => (
@@ -266,7 +268,7 @@ export default function Home() {
             initial={{ y: 20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.5 }}
-            className="border-t border-white/5 p-4 bg-dark-300/50"
+            className="flex-none border-t border-white/5 p-4 bg-dark-300/50"
           >
             <div className="flex justify-center items-center space-x-4">
               <motion.button
@@ -284,8 +286,8 @@ export default function Home() {
               <audio id="audio" className="hidden" />
             </div>
           </motion.div>
-        </motion.div>
-      </div>
+        </div>
+      </motion.div>
     </motion.main>
   );
 } 
