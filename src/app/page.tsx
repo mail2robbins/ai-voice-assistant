@@ -8,6 +8,7 @@ import { transcribeAudio, generateAIResponse, generateSpeech } from './actions/a
 import { Session } from 'next-auth';
 import HamburgerMenu from './components/HamburgerMenu';
 import AssistantSelector, { AssistantType } from './components/AssistantSelector';
+import ConfirmationModal from './components/ConfirmationModal';
 
 interface ExtendedSession extends Session {
   user: {
@@ -35,14 +36,39 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [assistantType, setAssistantType] = useState<AssistantType>('Personal Assistant');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [pendingAssistantType, setPendingAssistantType] = useState<AssistantType | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
 
   // Handle assistant type change
   const handleAssistantTypeChange = (type: AssistantType) => {
-    setAssistantType(type);
-    setChatHistory([]); // Clear chat history when assistant type changes
+    const audio = document.getElementById('audio') as HTMLAudioElement;
+    
+    if (!audio.paused) {
+      setPendingAssistantType(type);
+      setIsModalOpen(true);
+    } else {
+      setAssistantType(type);
+      setChatHistory([]);
+    }
+  };
+
+  const handleConfirmChange = () => {
+    if (pendingAssistantType) {
+      const audio = document.getElementById('audio') as HTMLAudioElement;
+      audio.pause();
+      setAssistantType(pendingAssistantType);
+      setChatHistory([]);
+      setIsModalOpen(false);
+      setPendingAssistantType(null);
+    }
+  };
+
+  const handleCancelChange = () => {
+    setIsModalOpen(false);
+    setPendingAssistantType(null);
   };
 
   // Redirect to sign in if not authenticated
@@ -161,150 +187,158 @@ export default function Home() {
   }
 
   return (
-    <motion.main
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      className="min-h-screen flex flex-col bg-gradient-dark"
-    >
-      <div className="flex-none p-4 md:p-8">
-        <motion.div
-          initial={{ y: -20, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          transition={{ delay: 0.2 }}
-          className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4"
-        >
-          <h1 className="text-3xl md:text-4xl font-bold text-white/90">
-            AI Voice Chat Assistant
-          </h1>
+    <>
+      <motion.main
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        className="min-h-screen flex flex-col bg-gradient-dark"
+      >
+        <div className="flex-none p-4 md:p-8">
+          <motion.div
+            initial={{ y: -20, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            transition={{ delay: 0.2 }}
+            className="max-w-4xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-4"
+          >
+            <h1 className="text-3xl md:text-4xl font-bold text-white/90">
+              AI Voice Chat Assistant
+            </h1>
 
-          <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
-            <div className="w-full md:w-64">
-              <AssistantSelector
-                selectedType={assistantType}
-                onSelect={handleAssistantTypeChange}
-              />
-            </div>
-            
-            {/* Desktop User Menu */}
-            <div className="hidden md:flex items-center space-x-4">
-              {session?.user?.image && (
-                <motion.img
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                  src={session.user.image}
-                  alt={session.user.name || 'User'}
-                  className="w-10 h-10 rounded-full ring-2 ring-accent-blue/30"
+            <div className="flex flex-col md:flex-row items-stretch md:items-center gap-4">
+              <div className="w-full md:w-76">
+                <AssistantSelector
+                  selectedType={assistantType}
+                  onSelect={handleAssistantTypeChange}
+                />
+              </div>
+              
+              {/* Desktop User Menu */}
+              <div className="hidden md:flex items-center space-x-4">
+                {session?.user?.image && (
+                  <motion.img
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 15 }}
+                    src={session.user.image}
+                    alt={session.user.name || 'User'}
+                    className="w-10 h-10 rounded-full ring-2 ring-accent-blue/30"
+                  />
+                )}
+                <motion.div
+                  initial={{ x: 20, opacity: 0 }}
+                  animate={{ x: 0, opacity: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className="text-sm"
+                >
+                  <p className="font-semibold text-white/80">
+                    {session?.user?.firstName || session?.user?.name || 'User'}
+                  </p>
+                  <button
+                    onClick={() => signOut()}
+                    className="text-accent-pink hover:text-accent-pink/80 transition-colors"
+                  >
+                    Sign out
+                  </button>
+                </motion.div>
+              </div>
+
+              {/* Mobile Hamburger Menu */}
+              {session?.user && (
+                <HamburgerMenu
+                  userName={session.user.name || 'User'}
+                  userImage={session.user.image}
+                  firstName={session.user.firstName}
                 />
               )}
-              <motion.div
-                initial={{ x: 20, opacity: 0 }}
-                animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.3 }}
-                className="text-sm"
-              >
-                <p className="font-semibold text-white/80">
-                  {session?.user?.firstName || session?.user?.name || 'User'}
-                </p>
-                <button
-                  onClick={() => signOut()}
-                  className="text-accent-pink hover:text-accent-pink/80 transition-colors"
-                >
-                  Sign out
-                </button>
-              </motion.div>
-            </div>
-
-            {/* Mobile Hamburger Menu */}
-            {session?.user && (
-              <HamburgerMenu
-                userName={session.user.name || 'User'}
-                userImage={session.user.image}
-                firstName={session.user.firstName}
-              />
-            )}
-          </div>
-        </motion.div>
-      </div>
-        
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.4 }}
-        className="flex-grow flex flex-col mx-4 md:mx-8 mb-4 md:mb-8"
-      >
-        <div className="max-w-4xl w-full mx-auto flex-grow flex flex-col bg-dark-200/50 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white/5">
-          <div 
-            ref={chatContainerRef}
-            className="flex-grow overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin scrollbar-thumb-dark-100 scrollbar-track-transparent"
-          >
-            <AnimatePresence>
-              {chatHistory.map((message, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 20, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ type: "spring", damping: 25, stiffness: 400 }}
-                  className={`flex ${
-                    message.role === 'user' ? 'justify-end' : 'justify-start'
-                  }`}
-                >
-                  <div
-                    className={`max-w-[70%] rounded-lg p-4 ${
-                      message.role === 'user'
-                        ? 'bg-accent-blue/20 text-white/90 backdrop-blur-sm'
-                        : 'bg-dark-100/50 text-white/80 backdrop-blur-sm'
-                    }`}
-                  >
-                    <p className="text-sm">{message.content}</p>
-                    <p className={`text-xs mt-1 ${
-                      message.role === 'user' ? 'text-accent-blue/60' : 'text-white/40'
-                    }`}>
-                      {formatTime(message.timestamp)}
-                    </p>
-                  </div>
-                </motion.div>
-              ))}
-            </AnimatePresence>
-            {isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -10 }}
-                className="flex justify-start"
-              >
-                <div className="bg-dark-100/50 rounded-lg p-4 backdrop-blur-sm">
-                  <p className="text-white/60">Processing your message...</p>
-                </div>
-              </motion.div>
-            )}
-          </div>
-
-          <motion.div
-            initial={{ y: 20, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex-none border-t border-white/5 p-4 bg-dark-300/50"
-          >
-            <div className="flex justify-center items-center space-x-4">
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={isRecording ? stopRecording : startRecording}
-                className={`px-6 py-3 rounded-full font-semibold transition-all ${
-                  isRecording
-                    ? 'bg-accent-pink/90 hover:bg-accent-pink text-white shadow-lg shadow-accent-pink/20'
-                    : 'bg-accent-blue/90 hover:bg-accent-blue text-white shadow-lg shadow-accent-blue/20'
-                }`}
-              >
-                {isRecording ? 'Stop Recording' : 'Start Recording'}
-              </motion.button>
-              <audio id="audio" className="hidden" />
             </div>
           </motion.div>
         </div>
-      </motion.div>
-    </motion.main>
+        
+        <motion.div
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.4 }}
+          className="flex-grow flex flex-col mx-4 md:mx-8 mb-4 md:mb-8"
+        >
+          <div className="max-w-4xl w-full mx-auto flex-grow flex flex-col bg-dark-200/50 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white/5">
+            <div 
+              ref={chatContainerRef}
+              className="flex-grow overflow-y-auto p-4 md:p-6 space-y-4 scrollbar-thin scrollbar-thumb-dark-100 scrollbar-track-transparent"
+            >
+              <AnimatePresence>
+                {chatHistory.map((message, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ type: "spring", damping: 25, stiffness: 400 }}
+                    className={`flex ${
+                      message.role === 'user' ? 'justify-end' : 'justify-start'
+                    }`}
+                  >
+                    <div
+                      className={`max-w-[70%] rounded-lg p-4 ${
+                        message.role === 'user'
+                          ? 'bg-accent-blue/20 text-white/90 backdrop-blur-sm'
+                          : 'bg-dark-100/50 text-white/80 backdrop-blur-sm'
+                      }`}
+                    >
+                      <p className="text-sm">{message.content}</p>
+                      <p className={`text-xs mt-1 ${
+                        message.role === 'user' ? 'text-accent-blue/60' : 'text-white/40'
+                      }`}>
+                        {formatTime(message.timestamp)}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+              {isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-dark-100/50 rounded-lg p-4 backdrop-blur-sm">
+                    <p className="text-white/60">Processing your message...</p>
+                  </div>
+                </motion.div>
+              )}
+            </div>
+
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex-none border-t border-white/5 p-4 bg-dark-300/50"
+            >
+              <div className="flex justify-center items-center space-x-4">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={isRecording ? stopRecording : startRecording}
+                  className={`px-6 py-3 rounded-full font-semibold transition-all ${
+                    isRecording
+                      ? 'bg-accent-pink/90 hover:bg-accent-pink text-white shadow-lg shadow-accent-pink/20'
+                      : 'bg-accent-blue/90 hover:bg-accent-blue text-white shadow-lg shadow-accent-blue/20'
+                  }`}
+                >
+                  {isRecording ? 'Stop Recording' : 'Start Recording'}
+                </motion.button>
+                <audio id="audio" className="hidden" />
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </motion.main>
+      <ConfirmationModal
+        isOpen={isModalOpen}
+        onConfirm={handleConfirmChange}
+        onCancel={handleCancelChange}
+        message="Audio is still playing. Are you sure you want to change the assistant type? This will stop the current audio and clear the chat history."
+      />
+    </>
   );
 } 
