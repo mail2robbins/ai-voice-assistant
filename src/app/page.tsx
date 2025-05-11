@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useRef } from 'react';
+import { useSession, signOut } from 'next-auth/react';
+import { redirect } from 'next/navigation';
 import { transcribeAudio, generateAIResponse, generateSpeech } from './actions/audio';
 
 interface ChatMessage {
@@ -10,6 +12,7 @@ interface ChatMessage {
 }
 
 export default function Home() {
+  const { data: session, status } = useSession();
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
@@ -18,6 +21,11 @@ export default function Home() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+
+  // Redirect to sign in if not authenticated
+  if (status === 'unauthenticated') {
+    redirect('/auth/signin');
+  }
 
   // Scroll to bottom of chat when history updates
   const scrollToBottom = () => {
@@ -115,12 +123,40 @@ export default function Home() {
     }).format(date);
   };
 
+  if (status === 'loading') {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-2xl text-gray-600">Loading...</div>
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen p-8 bg-gray-50">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-center mb-8 text-primary">
-          AI Voice Chat Assistant
-        </h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-4xl font-bold text-primary">
+            AI Voice Chat Assistant
+          </h1>
+          <div className="flex items-center space-x-4">
+            {session?.user?.image && (
+              <img
+                src={session.user.image}
+                alt={session.user.name || 'User'}
+                className="w-10 h-10 rounded-full"
+              />
+            )}
+            <div className="text-sm">
+              <p className="font-semibold">{session?.user?.name}</p>
+              <button
+                onClick={() => signOut()}
+                className="text-red-600 hover:text-red-800"
+              >
+                Sign out
+              </button>
+            </div>
+          </div>
+        </div>
         
         <div className="bg-white rounded-lg shadow-lg overflow-hidden">
           <div 
