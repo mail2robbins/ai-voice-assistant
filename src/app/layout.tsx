@@ -22,9 +22,16 @@ export const metadata: Metadata = {
       }
     ],
   },
-  manifest: '/site.webmanifest',
-  themeColor: '#1E1E2E',
-  viewport: 'width=device-width, initial-scale=1.0',
+  other: {
+    'theme-color': '#1E1E2E',
+    'viewport': 'width=device-width, initial-scale=1.0',
+    'mobile-web-app-capable': 'yes',
+    'apple-mobile-web-app-capable': 'yes',
+    'application-name': 'AI Voice Assistant',
+    'apple-mobile-web-app-title': 'Voice AI',
+    'msapplication-TileColor': '#1E1E2E',
+    'msapplication-config': 'none'
+  }
 }
 
 export default function RootLayout({
