@@ -4,15 +4,16 @@ import { signIn } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { Suspense } from 'react';
 
-export default function SignIn() {
+function SignInContent() {
   const searchParams = useSearchParams();
   const error = searchParams.get('error');
   const callbackUrl = searchParams.get('callbackUrl') || '/';
 
   const handleSignIn = async (provider: string) => {
     try {
-      const result = await signIn(provider, {
+      await signIn(provider, {
         callbackUrl,
         redirect: true,
       });
@@ -108,5 +109,17 @@ export default function SignIn() {
         </div>
       </motion.div>
     </div>
+  );
+}
+
+export default function SignIn() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center bg-gradient-dark">
+        <div className="text-white/80">Loading...</div>
+      </div>
+    }>
+      <SignInContent />
+    </Suspense>
   );
 } 
