@@ -56,7 +56,7 @@ export default function HamburgerMenu({ userName, userImage, firstName }: Hambur
   };
 
   return (
-    <div className="md:hidden fixed top-4 right-4 z-50">
+    <div className="md:hidden fixed top-4 right-4 z-[100]">
       {/* Hamburger Button */}
       <motion.button
         className="relative p-2 flex flex-col justify-center items-center w-10 h-10 focus:outline-none"
@@ -82,7 +82,7 @@ export default function HamburgerMenu({ userName, userImage, firstName }: Hambur
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed inset-0 bg-black/50 z-40"
+            className="fixed inset-0 bg-black/50 z-[90]"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -95,7 +95,7 @@ export default function HamburgerMenu({ userName, userImage, firstName }: Hambur
       <AnimatePresence>
         {isOpen && (
           <motion.div
-            className="fixed top-0 right-0 h-screen w-64 bg-dark-200/95 backdrop-blur-lg z-40 shadow-xl"
+            className="fixed top-0 right-0 h-screen w-64 bg-dark-200/95 backdrop-blur-lg z-[95] shadow-xl"
             initial="closed"
             animate="open"
             exit="closed"

@@ -200,9 +200,43 @@ export default function Home() {
       <motion.main
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        className="min-h-screen flex flex-col bg-gradient-dark"
+        className="min-h-screen flex flex-col bg-gradient-dark relative overflow-hidden"
       >
-        <div className="flex-none p-4 md:p-8">
+        {/* Animated background glow */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-glow z-0"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.5 }}
+          transition={{ duration: 1 }}
+        />
+        
+        {/* Decorative circles */}
+        <motion.div
+          className="absolute -top-40 -right-40 w-80 h-80 bg-accent-blue/10 rounded-full blur-3xl z-0"
+          animate={{
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div
+          className="absolute -bottom-40 -left-40 w-80 h-80 bg-accent-purple/10 rounded-full blur-3xl z-0"
+          animate={{
+            scale: [1.2, 1, 1.2],
+            opacity: [0.3, 0.5, 0.3],
+          }}
+          transition={{
+            duration: 5,
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+
+        <div className="flex-none p-4 md:p-8 relative z-10">
           <motion.div
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -267,7 +301,7 @@ export default function Home() {
           initial={{ y: 20, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.4 }}
-          className="flex-grow flex flex-col mx-4 md:mx-8 mb-4 md:mb-8"
+          className="flex-grow flex flex-col mx-4 md:mx-8 mb-4 md:mb-8 relative z-[1]"
         >
           <div className="max-w-4xl w-full mx-auto flex-grow flex flex-col bg-dark-200/50 backdrop-blur-lg rounded-lg shadow-xl overflow-hidden border border-white/5">
             <div 

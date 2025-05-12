@@ -22,10 +22,11 @@ module.exports = {
           pink: '#F472B6',
         },
       },
+
       backgroundImage: {
         'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
-        'gradient-dark': 'linear-gradient(to bottom right, #1F2937, #0F172A)',
-        'gradient-glow': 'linear-gradient(to bottom right, rgba(96, 165, 250, 0.1), rgba(167, 139, 250, 0.1))',
+        'gradient-dark': 'linear-gradient(to bottom right,rgb(33, 47, 66),rgb(5, 20, 53))',
+        'gradient-glow': 'linear-gradient(to bottom right, rgba(89, 214, 252, 0.3), rgba(167, 139, 250, 0.3))',
       },
     },
   },
