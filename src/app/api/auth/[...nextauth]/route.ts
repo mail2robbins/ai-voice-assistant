@@ -41,15 +41,30 @@ const handler = NextAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? '',
       authorization: {
         params: {
-          scope: 'openid email profile',
-          access_type: 'offline',
-          response_type: 'code'
+          prompt: "consent",
+          access_type: "offline",
+          response_type: "code",
+          scope: "openid email profile"
         }
-      }
+      },
+      checks: ["pkce", "state"],
     }),
     GithubProvider({
       clientId: process.env.GITHUB_ID ?? '',
       clientSecret: process.env.GITHUB_SECRET ?? '',
+      authorization: {
+        params: {
+          scope: "read:user user:email"
+        }
+      },
+      profile(profile) {
+        return {
+          id: profile.id.toString(),
+          name: profile.name || profile.login,
+          email: profile.email,
+          image: profile.avatar_url,
+        }
+      },
     }),
   ],
   pages: {
@@ -61,7 +76,18 @@ const handler = NextAuth({
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
   secret: process.env.NEXTAUTH_SECRET,
-  debug: false, // Enable debug logs
+  cookies: {
+    sessionToken: {
+      name: `next-auth.session-token`,
+      options: {
+        httpOnly: true,
+        sameSite: 'lax',
+        path: '/',
+        secure: process.env.NODE_ENV === 'production',
+      },
+    },
+  },
+  debug: process.env.NODE_ENV === 'development',
   // logger: {
   //   error: (code, metadata) => {
   //     console.error('AUTH ERROR:', code, metadata);
