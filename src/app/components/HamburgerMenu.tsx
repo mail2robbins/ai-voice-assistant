@@ -56,10 +56,10 @@ export default function HamburgerMenu({ userName, userImage, firstName }: Hambur
   };
 
   return (
-    <div className="md:hidden">
+    <div className="md:hidden fixed top-4 right-4 z-50">
       {/* Hamburger Button */}
       <motion.button
-        className="relative z-50 p-2 focus:outline-none"
+        className="relative p-2 flex flex-col justify-center items-center w-10 h-10 focus:outline-none"
         onClick={() => setIsOpen(!isOpen)}
         animate={isOpen ? "open" : "closed"}
         variants={buttonVariants}
@@ -67,11 +67,12 @@ export default function HamburgerMenu({ userName, userImage, firstName }: Hambur
         {[0, 1, 2].map((i) => (
           <motion.span
             key={i}
-            className="block w-6 h-0.5 bg-white/90 my-1.5 transform origin-center"
+            className="block w-6 h-0.5 bg-white/90 transform origin-center"
             variants={lineVariants}
             custom={i}
             style={{
-              transformOrigin: "center"
+              transformOrigin: "center",
+              marginBottom: i !== 2 ? "0.375rem" : "0"
             }}
           />
         ))}
