@@ -34,6 +34,7 @@ export default function Home() {
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [assistantType, setAssistantType] = useState<AssistantType>('Personal Assistant');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -143,7 +144,10 @@ export default function Home() {
         content: aiResponse,
         timestamp: new Date()
       };
-      setChatHistory([...updatedHistory, assistantMessage]);
+      
+      // Set audio processing state
+      setIsProcessingAudio(true);
+      setIsLoading(false);
 
       // Step 3: Generate speech from AI response using server action
       const base64Audio = await generateSpeech(aiResponse);
@@ -154,12 +158,17 @@ export default function Home() {
       const audioUrl = URL.createObjectURL(responseAudioBlob);
       const audio = document.getElementById('audio') as HTMLAudioElement;
       audio.src = audioUrl;
-      audio.play();
+      audio.oncanplaythrough = () => {
+        setIsProcessingAudio(false);
+        setChatHistory([...updatedHistory, assistantMessage]);
+        audio.play();
+      };
 
       // Scroll to the latest message
       scrollToBottom();
     } catch (error) {
       console.error('Error processing audio:', error);
+      setIsProcessingAudio(false);
     } finally {
       setIsLoading(false);
     }
@@ -303,6 +312,23 @@ export default function Home() {
                 >
                   <div className="bg-dark-100/50 rounded-lg p-4 backdrop-blur-sm">
                     <p className="text-white/60">Processing your message...</p>
+                  </div>
+                </motion.div>
+              )}
+              {isProcessingAudio && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex justify-start"
+                >
+                  <div className="bg-dark-100/50 rounded-lg p-4 backdrop-blur-sm">
+                    <div className="flex items-center space-x-2">
+                      <div className="animate-pulse w-2 h-2 bg-accent-blue rounded-full" />
+                      <div className="animate-pulse w-2 h-2 bg-accent-blue rounded-full" style={{ animationDelay: '0.2s' }} />
+                      <div className="animate-pulse w-2 h-2 bg-accent-blue rounded-full" style={{ animationDelay: '0.4s' }} />
+                      <span className="text-white/60 ml-2">Generating audio response...</span>
+                    </div>
                   </div>
                 </motion.div>
               )}
