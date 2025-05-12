@@ -6,8 +6,25 @@ import { NextAuthProvider } from './providers'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'AI Voice Chat Assistant',
+  title: 'AI Voice Assistant',
   description: 'An AI-powered voice chat assistant using Gemini and OpenAI',
+  icons: {
+    icon: [
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+    apple: [
+      {
+        url: '/favicon.svg',
+        type: 'image/svg+xml',
+      }
+    ],
+  },
+  manifest: '/site.webmanifest',
+  themeColor: '#1E1E2E',
+  viewport: 'width=device-width, initial-scale=1.0',
 }
 
 export default function RootLayout({

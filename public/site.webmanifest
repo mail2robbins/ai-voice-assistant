@@ -1,0 +1,14 @@
+{
+  "name": "AI Voice Assistant",
+  "short_name": "Voice AI",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "32x32",
+      "type": "image/svg+xml"
+    }
+  ],
+  "theme_color": "#1E1E2E",
+  "background_color": "#1E1E2E",
+  "display": "standalone"
+} 
