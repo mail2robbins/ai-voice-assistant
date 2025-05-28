@@ -9,6 +9,8 @@ import { Session } from 'next-auth';
 import HamburgerMenu from './components/HamburgerMenu';
 import AssistantSelector, { AssistantType } from './components/AssistantSelector';
 import ConfirmationModal from './components/ConfirmationModal';
+import { useLoading } from './context/LoadingContext';
+import LoadingSpinner from './components/LoadingSpinner';
 
 interface ExtendedSession extends Session {
   user: {
@@ -33,7 +35,6 @@ export default function Home() {
   const [isRecording, setIsRecording] = useState(false);
   const [transcript, setTranscript] = useState('');
   const [response, setResponse] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const [isProcessingAudio, setIsProcessingAudio] = useState(false);
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
   const [assistantType, setAssistantType] = useState<AssistantType>('Personal Assistant');
@@ -42,6 +43,7 @@ export default function Home() {
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const chatContainerRef = useRef<HTMLDivElement>(null);
+  const { setIsLoading } = useLoading();
 
   // Handle assistant type change
   const handleAssistantTypeChange = (type: AssistantType) => {
@@ -184,13 +186,7 @@ export default function Home() {
   if (status === 'loading') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-dark">
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="text-2xl text-white/80"
-        >
-          Loading...
-        </motion.div>
+        <LoadingSpinner size="lg" color="text-white" />
       </div>
     );
   }
@@ -337,18 +333,6 @@ export default function Home() {
                   </motion.div>
                 ))}
               </AnimatePresence>
-              {isLoading && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="flex justify-start"
-                >
-                  <div className="bg-dark-100/50 rounded-lg p-4 backdrop-blur-sm">
-                    <p className="text-white/60">Processing your message...</p>
-                  </div>
-                </motion.div>
-              )}
               {isProcessingAudio && (
                 <motion.div
                   initial={{ opacity: 0, y: 10 }}
