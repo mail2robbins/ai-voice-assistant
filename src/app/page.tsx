@@ -154,9 +154,13 @@ export default function Home() {
       // Step 3: Generate speech from AI response using server action
       const base64Audio = await generateSpeech(aiResponse);
       
-      // Convert base64 back to audio and play
-      const audioData = Buffer.from(base64Audio, 'base64');
-      const responseAudioBlob = new Blob([audioData], { type: 'audio/mp3' });
+      // Convert base64 back to audio and play (browser-compatible)
+      const binaryString = atob(base64Audio);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      const responseAudioBlob = new Blob([bytes], { type: 'audio/mp3' });
       const audioUrl = URL.createObjectURL(responseAudioBlob);
       const audio = document.getElementById('audio') as HTMLAudioElement;
       audio.src = audioUrl;
